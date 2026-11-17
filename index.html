@@ -1,0 +1,259 @@
+<title>ממסמך לתמונה</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;900&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<style>
+/* פריסה: סרגל עליון קבוע, פאנל קלט מתקפל, ולוח תוצאות בגריד: תמצית מימין, המחשה משמאל */
+:root{
+  --bg:#ffffff; --surface:#f5f6f7; --ink:#0d1117; --ink2:#4a5360; --line:#e3e6ea;
+  --accent:#0b5cad; --accent-soft:#e6f0fa; --good:#1a7f4b; --warn:#b4540a; --risk:#b3261e;
+  --font:'Heebo','Segoe UI',Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0d1117; --surface:#161c24; --ink:#f2f4f7; --ink2:#a6b0bd; --line:#262e39;
+  --accent:#5aa7f0; --accent-soft:#12263b; --good:#4cc38a; --warn:#f0a35a; --risk:#f28b82; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d1117; --surface:#161c24; --ink:#f2f4f7; --ink2:#a6b0bd; --line:#262e39;
+  --accent:#5aa7f0; --accent-soft:#12263b; --good:#4cc38a; --warn:#f0a35a; --risk:#f28b82; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.55;direction:rtl;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+.wrap{max-width:1180px;margin:0 auto}
+header{position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);z-index:5;display:flex;align-items:center;gap:16px;padding:12px 0;border-bottom:1px solid var(--line)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.logo{width:36px;height:36px;border-radius:8px;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-weight:900}
+header h1{font-size:20px;font-weight:900;margin:0;letter-spacing:-.2px}
+header p{margin:0;color:var(--ink2);font-size:14px}
+header .sp{flex:1}
+button{font:inherit;cursor:pointer;border:0;border-radius:8px;padding:10px 18px;font-weight:700;background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+button.pri{background:var(--accent);color:#fff}
+button:hover{filter:brightness(.96)} button:disabled{opacity:.5;cursor:default}
+button:focus-visible,textarea:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+#input{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0}
+.drop{background:var(--surface);border-radius:12px;padding:24px;display:grid;place-items:center;text-align:center;gap:6px;min-height:150px;cursor:pointer;transition:background .15s}
+.drop.over{background:var(--accent-soft)}
+.drop b{font-size:18px}
+textarea{width:100%;min-height:150px;resize:vertical;border:0;border-radius:12px;background:var(--surface);color:var(--ink);font:inherit;padding:16px;direction:rtl}
+.bar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;grid-column:1/-1}
+#status{color:var(--ink2);font-size:14px;flex:1;min-width:200px}
+.note{font-size:13px;color:var(--ink2)}
+#out{display:none}
+.thesis{margin:28px 0 8px}
+.kicker{font-size:13px;font-weight:700;color:var(--accent);letter-spacing:.4px}
+.thesis h2{font-size:clamp(26px,4vw,40px);line-height:1.2;font-weight:900;margin:6px 0 10px;text-wrap:balance;letter-spacing:-.5px}
+.thesis p{font-size:18px;max-width:70ch;margin:0;color:var(--ink2)}
+.thesis b,.pt b{color:var(--ink)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:22px 0}
+.tile{background:var(--surface);border-radius:12px;padding:16px}
+.tile .v{font-size:34px;font-weight:900;line-height:1.1;font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+.tile .v small{font-size:15px;font-weight:500;color:var(--ink2);margin-inline-start:4px}
+.tile .l{font-weight:700;margin-top:6px}
+.tile .n{font-size:13px;color:var(--ink2)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start}
+h3{font-size:13px;font-weight:700;letter-spacing:.5px;color:var(--ink2);margin:0 0 12px;text-transform:uppercase}
+section{margin-bottom:30px;min-width:0}
+.pt{padding:12px 0;border-top:1px solid var(--line)}
+.pt h4{margin:0 0 2px;font-size:17px}
+.pt p{margin:0;color:var(--ink2)}
+.chart{margin-bottom:22px}
+.chart h4{margin:0 0 10px;font-size:16px}
+.row{display:grid;grid-template-columns:minmax(80px,32%) 1fr 64px;gap:10px;align-items:center;margin:6px 0;font-size:14px}
+.row .t{height:14px;background:var(--surface);border-radius:4px;overflow:hidden}
+.row .f{height:100%;background:var(--accent);border-radius:4px;transition:width .6s}
+.row .n{font-variant-numeric:tabular-nums;font-weight:700;text-align:start}
+.map{display:grid;grid-template-columns:1fr 1fr;grid-template-areas:"n n" "j h" "j c" "j t" "s s";gap:6px;max-width:420px}
+.reg{border-radius:10px;padding:10px 12px;min-height:64px;display:flex;flex-direction:column;justify-content:space-between;background:var(--surface);color:var(--ink);position:relative}
+.reg .rn{font-weight:700;font-size:14px}
+.reg .rv{font-size:20px;font-weight:900;font-variant-numeric:tabular-nums}
+.reg.dark{color:#fff}
+.reg .ash{position:absolute;inset-inline-end:10px;top:8px;font-size:12px;font-weight:700;background:var(--bg);color:var(--ink);padding:1px 8px;border-radius:99px}
+.tl{border-inline-start:3px solid var(--line);padding-inline-start:16px;margin-inline-start:4px}
+.tl div{position:relative;padding:6px 0 12px}
+.tl div::before{content:"";position:absolute;inset-inline-start:-23px;top:13px;width:11px;height:11px;border-radius:50%;background:var(--accent)}
+.tl b{display:block}
+.dec{display:grid;gap:8px}
+.dec div{background:var(--surface);border-radius:10px;padding:12px 14px}
+.dec span{display:block;font-size:13px;color:var(--ink2)}
+.imp{display:grid;gap:8px}
+.imp div{border-radius:10px;padding:12px 14px;background:var(--surface);border-inline-start:5px solid var(--accent)}
+.imp .opportunity{border-color:var(--good)} .imp .risk{border-color:var(--risk)} .imp .action{border-color:var(--warn)}
+.imp em{font-style:normal;font-size:12px;font-weight:700;color:var(--ink2);display:block}
+.tag{display:inline-block;font-size:12px;font-weight:700;padding:1px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent)}
+.empty{color:var(--ink2)}
+@media(max-width:760px){#input,.grid{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="logo" aria-hidden="true">מ</div>
+  <div><h1>ממסמך לתמונה</h1><p>אגף התכנון, אשדוד: מסמך ארוך נהפך לתמונה אחת</p></div>
+  <div class="sp"></div>
+  <button id="newDoc" hidden>מסמך חדש</button>
+  <button id="copy" hidden>העתק תמצית</button>
+</header>
+
+<div id="input">
+  <label class="drop" id="drop" for="file">
+    <b>גרור לכאן מסמך או לחץ לבחירה</b>
+    <span>PDF, Word (docx) או טקסט</span>
+    <input type="file" id="file" accept=".pdf,.docx,.txt,.md" hidden>
+  </label>
+  <textarea id="txt" placeholder="או הדבק כאן את טקסט המסמך" aria-label="טקסט המסמך"></textarea>
+  <div class="bar">
+    <button class="pri" id="go">הפוך למסמך ויזואלי</button>
+    <button id="demo">טען מסמך לדוגמה</button>
+    <span id="status" role="status">המסמך מעובד בדפדפן ונשלח לניתוח רק בלחיצה על הכפתור.</span>
+  </div>
+</div>
+
+<main id="out"></main>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const REGIONS=['צפון','חיפה','מרכז','תל אביב','ירושלים','דרום'];
+const AREA={'צפון':'n','חיפה':'h','מרכז':'c','תל אביב':'t','ירושלים':'j','דרום':'s'};
+const DEMO=`דוגמה להמחשה בלבד: הנתונים להלן מומצאים ואינם אמיתיים.
+תכנית לאומית להרחבת היצע הדיור והתעסוקה 2026-2035 (טיוטה לדיון).
+מטרת התכנית: להגדיל את היצע יחידות הדיור הצפוי ב-420 אלף יחידות עד 2035, ולהוסיף 85 אלף מקומות תעסוקה סמוכים לצירי תחבורה ציבורית.
+התפלגות יחידות הדיור המתוכננות לפי מחוז, באלפים: צפון 62, חיפה 48, מרכז 95, תל אביב 70, ירושלים 51, דרום 94.
+כ-60 אחוז מהיחידות ימוקמו בתחום 1,000 מטר מתחנות רכבת קלה או כבדה קיימות או מאושרות.
+תנאי לאישור מתחמים בדרום: השלמת תכנית תשתיות ביוב וחשמל עד סוף 2028.
+לוחות זמנים: 2026 הגשת התכנית לממשלה. 2027 אישור מוסדות התכנון הארציים. 2028 תחילת שיווק קרקעות במחוז הדרום. 2030 אבן דרך ביניים של 150 אלף יחידות בביצוע.
+החלטות נדרשות: הממשלה תאשר מנגנון תקצוב תשתיות. משרד האוצר ורשות מקרקעי ישראל יגדירו תמחור קרקע מסובסד. הוועדות המחוזיות יקבלו סמכות לאשר מתחמים עד 500 יחידות במסלול מקוצר.
+סיכונים: פער בין קצב התכנון לקצב הקמת התשתיות, תלות בהשלמת קווי התחבורה הציבורית, ומחסור בכוח אדם בהנדסה ובפיקוח.
+מקומות תעסוקה לפי מחוז, באלפים: צפון 9, חיפה 12, מרכז 21, תל אביב 18, ירושלים 8, דרום 17.`;
+
+let SAMPLE=null;
+(async()=>{try{SAMPLE=await window.claude?.use('sample')}catch(e){SAMPLE=null}})();
+
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+// שבירת משפטים לשורות והדגשת **מילים**
+const rich=s=>esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').split(/(?<=[.!?])\s+/).join('<br>');
+const num=v=>typeof v==='number'?v.toLocaleString('he-IL'):esc(v);
+const status=(t)=>{$('status').textContent=t};
+
+async function extract(file){
+  const ext=file.name.split('.').pop().toLowerCase();
+  if(ext==='pdf'){
+    pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    const pdf=await pdfjsLib.getDocument({data:new Uint8Array(await file.arrayBuffer())}).promise;
+    let out='';
+    for(let i=1;i<=pdf.numPages;i++){
+      status('קורא עמוד '+i+' מתוך '+pdf.numPages);
+      const c=await (await pdf.getPage(i)).getTextContent();
+      out+=c.items.map(x=>x.str).join(' ')+'\n';
+    }
+    if(out.trim().length<50) throw new Error('ב-PDF אין שכבת טקסט (כנראה סריקה). הדבק את הטקסט ידנית.');
+    return out;
+  }
+  if(ext==='docx'){
+    return (await mammoth.extractRawText({arrayBuffer:await file.arrayBuffer()})).value;
+  }
+  return await file.text();
+}
+
+async function pick(file){
+  if(!file) return;
+  try{
+    status('קורא את הקובץ '+file.name);
+    $('txt').value=await extract(file);
+    status('נקרא: '+file.name+', '+$('txt').value.length.toLocaleString('he-IL')+' תווים. לחץ על "הפוך למסמך ויזואלי".');
+  }catch(e){status('הקריאה נכשלה: '+e.message)}
+}
+$('file').onchange=e=>pick(e.target.files[0]);
+const drop=$('drop');
+['dragover','dragenter'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('over')}));
+['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('over')}));
+drop.addEventListener('drop',e=>pick(e.dataTransfer.files[0]));
+$('demo').onclick=()=>{$('txt').value=DEMO;status('נטענה דוגמה מומצאת להמחשה. לחץ על "הפוך למסמך ויזואלי".')};
+
+const PROMPT=`אתה אנליסט תכנון עבור אגף תכנון עירוני בעיריית אשדוד (מחוז הדרום). קרא את המסמך וחלץ ממנו מבנה להצגה ויזואלית.
+כללים: כתוב עברית תקנית וקצרה. אל תמציא עובדות: כל מספר חייב להופיע במסמך, ואם אין נתון החזר null או רשימה ריקה. הפרד בין עובדה (מהמסמך) להערכה (שלך). בתוך טקסטים סמן 1 עד 3 מילים חשובות כך: **מילה**.
+החזר JSON בלבד, בדיוק במבנה הזה:
+{
+"title":"כותרת שמבטאת את התובנה המרכזית, עד 12 מילים",
+"doc_type":"סוג המסמך, למשל תכנית, דוח, החלטה",
+"scope":"ארצי | מחוזי | מקומי | מעורב",
+"thesis":"2 עד 3 משפטים קצרים: מה המסמך אומר ומה השתנה",
+"key_numbers":[{"label":"","value":number או טקסט,"unit":"","note":"הקשר קצר"}],
+"key_points":[{"heading":"","text":"משפט אחד או שניים"}],
+"charts":[{"title":"","unit":"","items":[{"label":"","value":number}]}],
+"regions":{"metric":"שם המדד","unit":"","items":[{"region":"אחד מ: צפון, חיפה, מרכז, תל אביב, ירושלים, דרום","value":number}]} או null אם אין פילוח מחוזי,
+"timeline":[{"when":"","what":""}],
+"decisions":[{"what":"","who":"","when":""}],
+"risks":[{"text":""}],
+"implications_ashdod":[{"type":"opportunity | risk | action","text":"הערכה שלך: מה זה אומר לאגף התכנון באשדוד"}]
+}
+מגבלות: key_numbers עד 5, key_points עד 5, charts עד 3 (רק אם יש נתונים השוואתיים), timeline עד 6, decisions עד 5, risks עד 4, implications_ashdod עד 4. ב-regions השתמש רק בשמות המחוזים המדויקים.
+המסמך:
+`;
+
+$('go').onclick=async()=>{
+  const text=$('txt').value.trim();
+  if(!text){status('אין טקסט לניתוח. העלה קובץ או הדבק טקסט.');return}
+  if(!SAMPLE){SAMPLE=await window.claude?.use('sample')}
+  if(!SAMPLE){status('הניתוח דורש הפעלת Claude בדפדפן שבו הדף נפתח. פתח את הדף מתוך claude.ai.');return}
+  $('go').disabled=true;status('מנתח את המסמך. זה לוקח כחצי דקה...');
+  try{
+    const data=await SAMPLE.json(PROMPT+text.slice(0,60000),{modelTier:'default',cache:false});
+    render(data);status('הניתוח הושלם.');
+  }catch(e){
+    status(e&&e.code==='not_granted'?'הניתוח לא אושר. אשר שימוש ב-Claude ונסה שוב.':'הניתוח נכשל: '+(e&&e.message||'שגיאה לא ידועה')+'. נסה שוב.');
+  }finally{$('go').disabled=false}
+};
+
+function bars(c){
+  const items=(c.items||[]).filter(i=>typeof i.value==='number');
+  const max=Math.max(...items.map(i=>i.value),1);
+  return `<div class="chart"><h4>${esc(c.title)}${c.unit?` <span class="tag">${esc(c.unit)}</span>`:''}</h4>${items.map(i=>
+    `<div class="row" title="${esc(i.label)}: ${num(i.value)}"><span>${esc(i.label)}</span><span class="t"><span class="f" style="display:block;width:${(i.value/max*100).toFixed(1)}%"></span></span><span class="n">${num(i.value)}</span></div>`).join('')}</div>`;
+}
+
+function mapHtml(r){
+  const vals={};(r.items||[]).forEach(i=>{if(typeof i.value==='number')vals[i.region]=i.value});
+  const max=Math.max(...Object.values(vals),1);
+  const tiles=REGIONS.map(n=>{
+    const v=vals[n];
+    const has=v!==undefined, t=has?v/max:0;
+    const st=has?`background:color-mix(in srgb,var(--accent) ${(14+t*80).toFixed(0)}%,var(--bg))`:'';
+    const dark=has&&t>.5?' dark':'';
+    return `<div class="reg${dark}" style="grid-area:${AREA[n]};${st}" title="${n}: ${has?num(v):'אין נתון'}"><span class="rn">${n}</span><span class="rv">${has?num(v):'<small class="empty">אין נתון</small>'}</span>${n==='דרום'?'<span class="ash">אשדוד כאן</span>':''}</div>`}).join('');
+  const total=Object.values(vals).reduce((a,b)=>a+b,0);
+  return `<div class="chart"><h4>${esc(r.metric)} לפי מחוז ${r.unit?`<span class="tag">${esc(r.unit)}</span>`:''}</h4><div class="map">${tiles}</div><p class="note">סך הכול במחוזות שדווחו: ${num(total)}. עוצמת הצבע משקפת את גודל הערך. הפריסה סכמטית ואינה מפה גאוגרפית.</p></div>`;
+}
+
+let LAST=null;
+function render(d){
+  LAST=d;
+  const kn=(d.key_numbers||[]).map(k=>`<div class="tile"><div class="v">${num(k.value)}<small>${esc(k.unit||'')}</small></div><div class="l">${esc(k.label)}</div><div class="n">${esc(k.note||'')}</div></div>`).join('');
+  const kp=(d.key_points||[]).map(p=>`<div class="pt"><h4>${esc(p.heading)}</h4><p>${rich(p.text)}</p></div>`).join('');
+  const charts=(d.charts||[]).filter(c=>c.items?.length).map(bars).join('');
+  const reg=d.regions&&d.regions.items?.length?mapHtml(d.regions):'';
+  const tl=(d.timeline||[]).length?`<section><h3>ציר זמן</h3><div class="tl">${d.timeline.map(t=>`<div><b>${esc(t.when)}</b>${esc(t.what)}</div>`).join('')}</div></section>`:'';
+  const dec=(d.decisions||[]).length?`<section><h3>החלטות נדרשות</h3><div class="dec">${d.decisions.map(x=>`<div><b>${esc(x.what)}</b><span>${esc([x.who,x.when].filter(Boolean).join(' | '))}</span></div>`).join('')}</div></section>`:'';
+  const rk=(d.risks||[]).length?`<section><h3>סיכונים לפי המסמך</h3><div class="imp">${d.risks.map(x=>`<div class="risk">${rich(x.text)}</div>`).join('')}</div></section>`:'';
+  const L={opportunity:'הזדמנות',risk:'סיכון',action:'לפעולה'};
+  const im=(d.implications_ashdod||[]).length?`<section><h3>מה זה אומר עבורנו באשדוד (הערכה, לא עובדה מהמסמך)</h3><div class="imp">${d.implications_ashdod.map(x=>`<div class="${esc(x.type)}"><em>${L[x.type]||''}</em>${rich(x.text)}</div>`).join('')}</div></section>`:'';
+  $('out').innerHTML=`
+  <div class="thesis"><div class="kicker">${esc(d.doc_type||'מסמך')} | היקף: ${esc(d.scope||'לא צוין')}</div><h2>${esc(d.title)}</h2><p>${rich(d.thesis)}</p></div>
+  ${kn?`<div class="tiles">${kn}</div>`:''}
+  <div class="grid">
+    <div><section><h3>תמצית: ${(d.key_points||[]).length} נקודות מרכזיות</h3>${kp}</section>${dec}${rk}</div>
+    <div>${reg||charts?`<section><h3>המחשה</h3>${reg}${charts}</section>`:''}${tl}${im}</div>
+  </div>`;
+  $('out').style.display='block';$('input').style.display='none';
+  $('newDoc').hidden=false;$('copy').hidden=false;
+  scrollTo({top:0});
+}
+$('newDoc').onclick=()=>{$('out').style.display='none';$('input').style.display='grid';$('newDoc').hidden=true;$('copy').hidden=true};
+$('copy').onclick=async()=>{
+  if(!LAST)return;const d=LAST;const strip=s=>String(s||'').replace(/\*\*/g,'');
+  const t=[d.title,'',strip(d.thesis),'',...(d.key_numbers||[]).map(k=>`${k.label}: ${k.value} ${k.unit||''}`),'',...(d.key_points||[]).map(p=>`${p.heading}: ${strip(p.text)}`),'','מה זה אומר באשדוד (הערכה):',...(d.implications_ashdod||[]).map(x=>'- '+strip(x.text))].join('\n');
+  try{await navigator.clipboard.writeText(t);$('copy').textContent='הועתק'}catch(e){$('copy').textContent='ההעתקה נחסמה'}
+  setTimeout(()=>$('copy').textContent='העתק תמצית',1800);
+};
+</script>
